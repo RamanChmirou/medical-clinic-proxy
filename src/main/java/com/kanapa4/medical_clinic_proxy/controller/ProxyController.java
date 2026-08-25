@@ -3,7 +3,6 @@ package com.kanapa4.medical_clinic_proxy.controller;
 import com.kanapa4.medical_clinic_proxy.model.BookVisitRequest;
 import com.kanapa4.medical_clinic_proxy.model.DoctorResponse;
 import com.kanapa4.medical_clinic_proxy.model.Specialization;
-import com.kanapa4.medical_clinic_proxy.model.PageResponse;
 import com.kanapa4.medical_clinic_proxy.model.VisitResponse;
 import com.kanapa4.medical_clinic_proxy.service.ProxyService;
 import lombok.RequiredArgsConstructor;
@@ -77,11 +76,8 @@ public class ProxyController {
     }
 
     @GetMapping("/doctors")
-    public PageResponse<DoctorResponse> getDoctorsBySpecialization(
-            @RequestParam(required = false) Specialization specialization,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public List<DoctorResponse> getDoctorsBySpecialization(@RequestParam Specialization specialization) {
         log.info("Received request to get doctors for specialization: {}", specialization);
-        return proxyService.getDoctorsBySpecialization(specialization, page, size);
+        return proxyService.getDoctorsBySpecialization(specialization);
     }
 }

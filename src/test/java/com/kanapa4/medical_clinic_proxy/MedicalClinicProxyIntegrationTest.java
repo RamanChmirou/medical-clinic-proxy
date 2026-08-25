@@ -23,10 +23,11 @@ public class MedicalClinicProxyIntegrationTest {
 
     @Test
     void getPatientVisits_ApiAvailable_ReturnVisits() throws Exception {
-        stubFor(get(urlEqualTo("/visits/patient/1"))
+        stubFor(get(urlPathEqualTo("/visits"))
+                .withQueryParam("patientId", equalTo("1"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody("[{\"id\": 1}]")));
+                        .withBody("{\"content\":[{\"id\":1}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
         mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/1/visits"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
@@ -34,7 +35,8 @@ public class MedicalClinicProxyIntegrationTest {
 
     @Test
     void getPatientVisits_ApiUnavailable_ReturnFallback() throws Exception {
-        stubFor(get(urlEqualTo("/visits/patient/2"))
+        stubFor(get(urlPathEqualTo("/visits"))
+                .withQueryParam("patientId", equalTo("2"))
                 .willReturn(aResponse().withStatus(500)));
         mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/2/visits"))
                 .andExpect(status().isOk())
@@ -43,36 +45,40 @@ public class MedicalClinicProxyIntegrationTest {
 
     @Test
     void getPatientVisits_RetryOnFailure_SucceedsEventually() throws Exception {
-        stubFor(get(urlEqualTo("/visits/patient/3"))
+        stubFor(get(urlPathEqualTo("/visits"))
+                .withQueryParam("patientId", equalTo("3"))
                 .inScenario("Retry Scenario")
                 .whenScenarioStateIs(com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED)
                 .willReturn(aResponse().withStatus(500))
                 .willSetStateTo("First Failure"));
-        stubFor(get(urlEqualTo("/visits/patient/3"))
+        stubFor(get(urlPathEqualTo("/visits"))
+                .withQueryParam("patientId", equalTo("3"))
                 .inScenario("Retry Scenario")
                 .whenScenarioStateIs("First Failure")
                 .willReturn(aResponse().withStatus(500))
                 .willSetStateTo("Second Failure"));
-        stubFor(get(urlEqualTo("/visits/patient/3"))
+        stubFor(get(urlPathEqualTo("/visits"))
+                .withQueryParam("patientId", equalTo("3"))
                 .inScenario("Retry Scenario")
                 .whenScenarioStateIs("Second Failure")
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody("[{\"id\": 3}]")));
+                        .withBody("{\"content\":[{\"id\":3}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
         mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/3/visits"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(3));
-        verify(3, getRequestedFor(urlEqualTo("/visits/patient/3")));
+        verify(3, getRequestedFor(urlPathEqualTo("/visits")).withQueryParam("patientId", equalTo("3")));
     }
 
     @Test
     void getPatientVisits_AllRetriesFail_ReturnFallback() throws Exception {
-        stubFor(get(urlEqualTo("/visits/patient/4"))
+        stubFor(get(urlPathEqualTo("/visits"))
+                .withQueryParam("patientId", equalTo("4"))
                 .willReturn(aResponse().withStatus(500)));
         mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/4/visits"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
-        verify(3, getRequestedFor(urlEqualTo("/visits/patient/4")));
+        verify(3, getRequestedFor(urlPathEqualTo("/visits")).withQueryParam("patientId", equalTo("4")));
     }
 
     @Test
@@ -101,29 +107,25 @@ public class MedicalClinicProxyIntegrationTest {
 
     @Test
     void getDoctorsBySpecialization_ApiAvailable_ReturnDoctorsList() throws Exception {
-        stubFor(get(urlEqualTo("/doctors?specialization=CARDIOLOGIST&page=0&size=10"))
+        stubFor(get(urlEqualTo("/doctors/specialization/CARDIOLOGY"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody("{\"content\":[{\"id\": 1, \"firstName\": \"John\"}], \"totalPages\": 1}")));
+                        .withBody("[{\"id\": 1, \"firstName\": \"John\"}]")));
         mockMvc.perform(MockMvcRequestBuilders.get("/proxy/doctors")
-                .param("specialization", "CARDIOLOGIST")
-                .param("page", "0")
-                .param("size", "10"))
+                .param("specialization", "CARDIOLOGY"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$.content[0].firstName").value("John"))
-                .andExpect(jsonPath("$.totalPages").value(1));
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].firstName").value("John"));
     }
 
     @Test
     void getDoctorsBySpecialization_ApiUnavailable_ReturnFallback() throws Exception {
-        stubFor(get(urlEqualTo("/doctors?specialization=CARDIOLOGIST&page=0&size=10"))
+        stubFor(get(urlEqualTo("/doctors/specialization/CARDIOLOGY"))
                 .willReturn(aResponse().withStatus(500)));
         mockMvc.perform(MockMvcRequestBuilders.get("/proxy/doctors")
-                .param("specialization", "CARDIOLOGIST")
-                .param("page", "0")
-                .param("size", "10"))
+                .param("specialization", "CARDIOLOGY"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty());
+                .andExpect(jsonPath("$").isEmpty());
     }
 }
+

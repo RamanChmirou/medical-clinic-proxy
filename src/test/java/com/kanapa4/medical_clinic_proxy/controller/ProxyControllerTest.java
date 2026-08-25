@@ -3,7 +3,6 @@ package com.kanapa4.medical_clinic_proxy.controller;
 import tools.jackson.databind.ObjectMapper;
 import com.kanapa4.medical_clinic_proxy.model.BookVisitRequest;
 import com.kanapa4.medical_clinic_proxy.model.DoctorResponse;
-import com.kanapa4.medical_clinic_proxy.model.PageResponse;
 import com.kanapa4.medical_clinic_proxy.model.Specialization;
 import com.kanapa4.medical_clinic_proxy.model.VisitResponse;
 import com.kanapa4.medical_clinic_proxy.service.ProxyService;
@@ -56,10 +55,10 @@ public class ProxyControllerTest {
     @Test
     void getAvailableVisitsBySpecializationAndDate_ValidParams_Return200() throws Exception {
         LocalDate date = LocalDate.of(2026, 8, 18);
-        when(proxyService.getAvailableVisitsBySpecializationAndDate(Specialization.CARDIOLOGIST, date))
+        when(proxyService.getAvailableVisitsBySpecializationAndDate(Specialization.CARDIOLOGY, date))
                 .thenReturn(List.of(new VisitResponse()));
         mockMvc.perform(get("/proxy/visits/available")
-                .param("specialization", "CARDIOLOGIST")
+                .param("specialization", "CARDIOLOGY")
                 .param("date", "2026-08-18"))
                 .andExpect(status().isOk());
     }
@@ -82,10 +81,10 @@ public class ProxyControllerTest {
     void getAvailableVisitsByDateRange_ValidParams_Return200() throws Exception {
         LocalDate start = LocalDate.of(2026, 8, 18);
         LocalDate end = LocalDate.of(2026, 8, 25);
-        when(proxyService.getAvailableVisitsByDateRange(Specialization.CARDIOLOGIST, start, end))
+        when(proxyService.getAvailableVisitsByDateRange(Specialization.CARDIOLOGY, start, end))
                 .thenReturn(List.of(new VisitResponse()));
         mockMvc.perform(get("/proxy/visits/available-range")
-                .param("specialization", "CARDIOLOGIST")
+                .param("specialization", "CARDIOLOGY")
                 .param("startDate", "2026-08-18")
                 .param("endDate", "2026-08-25"))
                 .andExpect(status().isOk());
@@ -95,10 +94,10 @@ public class ProxyControllerTest {
     void getVisitsBySpecializationAndDateRange_ValidParams_Return200() throws Exception {
         LocalDate start = LocalDate.of(2026, 8, 18);
         LocalDate end = LocalDate.of(2026, 8, 25);
-        when(proxyService.getVisitsBySpecializationAndDateRange(Specialization.CARDIOLOGIST, start, end))
+        when(proxyService.getVisitsBySpecializationAndDateRange(Specialization.CARDIOLOGY, start, end))
                 .thenReturn(List.of(new VisitResponse()));
         mockMvc.perform(get("/proxy/visits/search")
-                .param("specialization", "CARDIOLOGIST")
+                .param("specialization", "CARDIOLOGY")
                 .param("startDate", "2026-08-18")
                 .param("endDate", "2026-08-25"))
                 .andExpect(status().isOk());
@@ -106,12 +105,11 @@ public class ProxyControllerTest {
 
     @Test
     void getDoctorsBySpecialization_ValidParams_Return200() throws Exception {
-        when(proxyService.getDoctorsBySpecialization(Specialization.CARDIOLOGIST, 0, 10))
-                .thenReturn(new PageResponse<>(List.of(new DoctorResponse()), 0, 10, 1L, 1));
+        when(proxyService.getDoctorsBySpecialization(Specialization.CARDIOLOGY))
+                .thenReturn(List.of(new DoctorResponse()));
         mockMvc.perform(get("/proxy/doctors")
-                .param("specialization", "CARDIOLOGIST")
-                .param("page", "0")
-                .param("size", "10"))
+                .param("specialization", "CARDIOLOGY"))
                 .andExpect(status().isOk());
     }
 }
+

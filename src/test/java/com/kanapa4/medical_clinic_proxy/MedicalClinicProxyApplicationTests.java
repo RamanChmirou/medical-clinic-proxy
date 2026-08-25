@@ -12,3 +12,4 @@ class MedicalClinicProxyApplicationTests {
     void contextLoads() {
     }
 }
+

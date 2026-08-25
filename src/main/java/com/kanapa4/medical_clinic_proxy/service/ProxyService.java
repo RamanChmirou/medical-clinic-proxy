@@ -3,8 +3,6 @@ package com.kanapa4.medical_clinic_proxy.service;
 import com.kanapa4.medical_clinic_proxy.client.MedicalClinicClient;
 import com.kanapa4.medical_clinic_proxy.model.DoctorDto;
 import com.kanapa4.medical_clinic_proxy.model.DoctorResponse;
-import com.kanapa4.medical_clinic_proxy.model.DoctorPageResponse;
-import com.kanapa4.medical_clinic_proxy.model.PageResponse;
 import com.kanapa4.medical_clinic_proxy.model.Specialization;
 import com.kanapa4.medical_clinic_proxy.model.VisitDto;
 import com.kanapa4.medical_clinic_proxy.model.VisitResponse;
@@ -13,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,7 +20,7 @@ public class ProxyService {
 
     public List<VisitResponse> getPatientVisits(Long patientId) {
         log.info("Fetching visits for patient {}", patientId);
-        return mapVisitsToResponse(client.getPatientVisits(patientId));
+        return mapVisitsToResponse(client.getPatientVisits(patientId).content());
     }
 
     public VisitResponse bookVisit(Long visitId, Long patientId) {
@@ -33,17 +30,17 @@ public class ProxyService {
 
     public List<VisitResponse> getAvailableVisitsByDoctor(Long doctorId) {
         log.info("Fetching available visits for doctor {}", doctorId);
-        return mapVisitsToResponse(client.getAvailableVisitsByDoctor(doctorId));
+        return mapVisitsToResponse(client.getAvailableVisitsByDoctor(doctorId, true).content());
     }
 
     public List<VisitResponse> getAvailableVisitsBySpecializationAndDate(Specialization specialization, LocalDate date) {
         log.info("Fetching available visits for spec {} and date {}", specialization, date);
-        return mapVisitsToResponse(client.getAvailableVisitsBySpecializationAndDate(specialization, date));
+        return mapVisitsToResponse(client.getAvailableVisitsBySpecializationAndDate(specialization, date, true).content());
     }
 
     public List<VisitResponse> getDoctorVisits(Long doctorId) {
         log.info("Fetching all visits for doctor {}", doctorId);
-        return mapVisitsToResponse(client.getDoctorVisits(doctorId));
+        return mapVisitsToResponse(client.getDoctorVisits(doctorId).content());
     }
 
     public VisitResponse cancelVisit(Long visitId) {
@@ -53,31 +50,23 @@ public class ProxyService {
 
     public List<VisitResponse> getAvailableVisitsByDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
         log.info("Fetching available visits for spec {} from {} to {}", specialization, startDate, endDate);
-        return mapVisitsToResponse(client.getAvailableVisitsByDateRange(specialization, startDate, endDate));
+        return mapVisitsToResponse(client.getAvailableVisitsByDateRange(specialization, startDate, endDate, true).content());
     }
 
     public List<VisitResponse> getVisitsBySpecializationAndDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
         log.info("Fetching visits for spec {} from {} to {}", specialization, startDate, endDate);
-        return mapVisitsToResponse(client.getVisitsBySpecializationAndDateRange(specialization, startDate, endDate));
+        return mapVisitsToResponse(client.getVisitsBySpecializationAndDateRange(specialization, startDate, endDate).content());
     }
 
-    public PageResponse<DoctorResponse> getDoctorsBySpecialization(Specialization specialization, int page, int size) {
+    public List<DoctorResponse> getDoctorsBySpecialization(Specialization specialization) {
         log.info("Fetching doctors for specialization {}", specialization);
-        DoctorPageResponse clientResponse = client.getDoctorsBySpecialization(specialization, page, size);
-        List<DoctorResponse> content = clientResponse.getContent().stream()
+        return client.getDoctorsBySpecialization(specialization).stream()
                 .map(this::mapToDoctorResponse)
-                .collect(Collectors.toList());
-        return new PageResponse<>(
-                content,
-                clientResponse.getNumber() != null ? clientResponse.getNumber() : 0,
-                clientResponse.getSize() != null ? clientResponse.getSize() : 10,
-                clientResponse.getTotalElements() != null ? clientResponse.getTotalElements() : 0L,
-                clientResponse.getTotalPages() != null ? clientResponse.getTotalPages() : 0
-        );
+                .toList();
     }
 
     private List<VisitResponse> mapVisitsToResponse(List<VisitDto> dtos) {
-        return dtos.stream().map(this::mapToVisitResponse).collect(Collectors.toList());
+        return dtos.stream().map(this::mapToVisitResponse).toList();
     }
 
     private VisitResponse mapToVisitResponse(VisitDto dto) {

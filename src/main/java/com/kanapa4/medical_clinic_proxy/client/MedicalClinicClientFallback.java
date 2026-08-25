@@ -1,7 +1,8 @@
 package com.kanapa4.medical_clinic_proxy.client;
 
 import com.kanapa4.medical_clinic_proxy.exception.ServiceUnavailableException;
-import com.kanapa4.medical_clinic_proxy.model.DoctorPageResponse;
+import com.kanapa4.medical_clinic_proxy.model.DoctorDto;
+import com.kanapa4.medical_clinic_proxy.model.PageResponse;
 import com.kanapa4.medical_clinic_proxy.model.Specialization;
 import com.kanapa4.medical_clinic_proxy.model.VisitDto;
 import lombok.extern.slf4j.Slf4j;
@@ -15,14 +16,17 @@ import java.util.List;
 @Component
 public class MedicalClinicClientFallback implements FallbackFactory<MedicalClinicClient> {
 
+    private static final PageResponse<VisitDto> EMPTY_VISIT_PAGE =
+            new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0);
+
     @Override
     public MedicalClinicClient create(Throwable cause) {
         return new MedicalClinicClient() {
 
             @Override
-            public List<VisitDto> getPatientVisits(Long patientId) {
+            public PageResponse<VisitDto> getPatientVisits(Long patientId) {
                 log.error("Fallback for getPatientVisits triggered due to error: {}", cause.getMessage(), cause);
-                return Collections.emptyList();
+                return EMPTY_VISIT_PAGE;
             }
 
             @Override
@@ -32,21 +36,21 @@ public class MedicalClinicClientFallback implements FallbackFactory<MedicalClini
             }
 
             @Override
-            public List<VisitDto> getAvailableVisitsByDoctor(Long doctorId) {
+            public PageResponse<VisitDto> getAvailableVisitsByDoctor(Long doctorId, boolean available) {
                 log.error("Fallback for getAvailableVisitsByDoctor triggered due to error: {}", cause.getMessage(), cause);
-                return Collections.emptyList();
+                return EMPTY_VISIT_PAGE;
             }
 
             @Override
-            public List<VisitDto> getAvailableVisitsBySpecializationAndDate(Specialization specialization, LocalDate date) {
+            public PageResponse<VisitDto> getAvailableVisitsBySpecializationAndDate(Specialization specialization, LocalDate date, boolean available) {
                 log.error("Fallback for getAvailableVisitsBySpecializationAndDate triggered due to error: {}", cause.getMessage(), cause);
-                return Collections.emptyList();
+                return EMPTY_VISIT_PAGE;
             }
 
             @Override
-            public List<VisitDto> getDoctorVisits(Long doctorId) {
+            public PageResponse<VisitDto> getDoctorVisits(Long doctorId) {
                 log.error("Fallback for getDoctorVisits triggered due to error: {}", cause.getMessage(), cause);
-                return Collections.emptyList();
+                return EMPTY_VISIT_PAGE;
             }
 
             @Override
@@ -56,21 +60,21 @@ public class MedicalClinicClientFallback implements FallbackFactory<MedicalClini
             }
 
             @Override
-            public List<VisitDto> getAvailableVisitsByDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
+            public PageResponse<VisitDto> getAvailableVisitsByDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate, boolean available) {
                 log.error("Fallback for getAvailableVisitsByDateRange triggered due to error: {}", cause.getMessage(), cause);
-                return Collections.emptyList();
+                return EMPTY_VISIT_PAGE;
             }
 
             @Override
-            public List<VisitDto> getVisitsBySpecializationAndDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
+            public PageResponse<VisitDto> getVisitsBySpecializationAndDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
                 log.error("Fallback for getVisitsBySpecializationAndDateRange triggered due to error: {}", cause.getMessage(), cause);
-                return Collections.emptyList();
+                return EMPTY_VISIT_PAGE;
             }
 
             @Override
-            public DoctorPageResponse getDoctorsBySpecialization(Specialization specialization, int page, int size) {
+            public List<DoctorDto> getDoctorsBySpecialization(Specialization specialization) {
                 log.error("Fallback for getDoctorsBySpecialization triggered due to error: {}", cause.getMessage(), cause);
-                return new DoctorPageResponse(Collections.emptyList(), 0, 0L, size, page);
+                return Collections.emptyList();
             }
         };
     }
