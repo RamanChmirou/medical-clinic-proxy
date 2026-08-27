@@ -24,8 +24,8 @@ public class MedicalClinicClientFallback implements FallbackFactory<MedicalClini
         return new MedicalClinicClient() {
 
             @Override
-            public PageResponse<VisitDto> getPatientVisits(Long patientId) {
-                log.error("Fallback for getPatientVisits triggered due to error: {}", cause.getMessage(), cause);
+            public PageResponse<VisitDto> getVisits(Long patientId, Long doctorId, Specialization specialization, LocalDate startDate, LocalDate endDate, Boolean available) {
+                log.error("Fallback for getVisits triggered due to error: {}", cause.getMessage(), cause);
                 return EMPTY_VISIT_PAGE;
             }
 
@@ -36,39 +36,9 @@ public class MedicalClinicClientFallback implements FallbackFactory<MedicalClini
             }
 
             @Override
-            public PageResponse<VisitDto> getAvailableVisitsByDoctor(Long doctorId, boolean available) {
-                log.error("Fallback for getAvailableVisitsByDoctor triggered due to error: {}", cause.getMessage(), cause);
-                return EMPTY_VISIT_PAGE;
-            }
-
-            @Override
-            public PageResponse<VisitDto> getAvailableVisitsBySpecializationAndDate(Specialization specialization, LocalDate date, boolean available) {
-                log.error("Fallback for getAvailableVisitsBySpecializationAndDate triggered due to error: {}", cause.getMessage(), cause);
-                return EMPTY_VISIT_PAGE;
-            }
-
-            @Override
-            public PageResponse<VisitDto> getDoctorVisits(Long doctorId) {
-                log.error("Fallback for getDoctorVisits triggered due to error: {}", cause.getMessage(), cause);
-                return EMPTY_VISIT_PAGE;
-            }
-
-            @Override
             public VisitDto cancelVisit(Long visitId) {
                 log.error("Fallback for cancelVisit triggered due to error: {}", cause.getMessage(), cause);
                 throw new ServiceUnavailableException("Failed to cancel visit, service unavailable");
-            }
-
-            @Override
-            public PageResponse<VisitDto> getAvailableVisitsByDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate, boolean available) {
-                log.error("Fallback for getAvailableVisitsByDateRange triggered due to error: {}", cause.getMessage(), cause);
-                return EMPTY_VISIT_PAGE;
-            }
-
-            @Override
-            public PageResponse<VisitDto> getVisitsBySpecializationAndDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
-                log.error("Fallback for getVisitsBySpecializationAndDateRange triggered due to error: {}", cause.getMessage(), cause);
-                return EMPTY_VISIT_PAGE;
             }
 
             @Override

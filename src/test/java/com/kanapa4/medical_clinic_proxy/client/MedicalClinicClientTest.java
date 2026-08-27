@@ -20,13 +20,13 @@ public class MedicalClinicClientTest {
     private MedicalClinicClient medicalClinicClient;
 
     @Test
-    void getPatientVisits_WireMockConfigured_ReturnVisitPage() {
+    void getVisits_WireMockConfigured_ReturnVisitPage() {
         stubFor(get(urlPathEqualTo("/visits"))
                 .withQueryParam("patientId", equalTo("1"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"content\":[{\"id\":1,\"durationInMinutes\":30}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        PageResponse<VisitDto> page = medicalClinicClient.getPatientVisits(1L);
+        PageResponse<VisitDto> page = medicalClinicClient.getVisits(1L, null, null, null, null, null);
         assertNotNull(page);
         assertFalse(page.content().isEmpty());
         assertEquals(1L, page.content().getFirst().getId());
@@ -45,46 +45,19 @@ public class MedicalClinicClientTest {
     }
 
     @Test
-    void getAvailableVisitsByDoctor_WireMockConfigured_ReturnVisitPage() {
-        stubFor(get(urlPathEqualTo("/visits"))
-                .withQueryParam("doctorId", equalTo("1"))
-                .withQueryParam("available", equalTo("true"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"content\":[{\"id\":5,\"doctorId\":1}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        PageResponse<VisitDto> page = medicalClinicClient.getAvailableVisitsByDoctor(1L, true);
-        assertNotNull(page);
-        assertFalse(page.content().isEmpty());
-        assertEquals(5L, page.content().getFirst().getId());
-    }
-
-    @Test
-    void getAvailableVisitsBySpecializationAndDate_WireMockConfigured_ReturnVisitPage() {
+    void getVisits_WithSpecializationAndDate_ReturnVisitPage() {
         stubFor(get(urlPathEqualTo("/visits"))
                 .withQueryParam("specialization", equalTo("CARDIOLOGY"))
-                .withQueryParam("date", equalTo("2026-08-18"))
+                .withQueryParam("startDate", equalTo("2026-08-18"))
                 .withQueryParam("available", equalTo("true"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"content\":[{\"id\":10}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        PageResponse<VisitDto> page = medicalClinicClient.getAvailableVisitsBySpecializationAndDate(
-                Specialization.CARDIOLOGY, LocalDate.of(2026, 8, 18), true);
+        PageResponse<VisitDto> page = medicalClinicClient.getVisits(null, null,
+                Specialization.CARDIOLOGY, LocalDate.of(2026, 8, 18), null, true);
         assertNotNull(page);
         assertFalse(page.content().isEmpty());
         assertEquals(10L, page.content().getFirst().getId());
-    }
-
-    @Test
-    void getDoctorVisits_WireMockConfigured_ReturnVisitPage() {
-        stubFor(get(urlPathEqualTo("/visits"))
-                .withQueryParam("doctorId", equalTo("1"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"content\":[{\"id\":15}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        PageResponse<VisitDto> page = medicalClinicClient.getDoctorVisits(1L);
-        assertNotNull(page);
-        assertFalse(page.content().isEmpty());
-        assertEquals(15L, page.content().getFirst().getId());
     }
 
     @Test
@@ -96,39 +69,6 @@ public class MedicalClinicClientTest {
         VisitDto visit = medicalClinicClient.cancelVisit(1L);
         assertNotNull(visit);
         assertEquals(1L, visit.getId());
-    }
-
-    @Test
-    void getAvailableVisitsByDateRange_WireMockConfigured_ReturnVisitPage() {
-        stubFor(get(urlPathEqualTo("/visits"))
-                .withQueryParam("specialization", equalTo("CARDIOLOGY"))
-                .withQueryParam("startDate", equalTo("2026-08-18"))
-                .withQueryParam("endDate", equalTo("2026-08-25"))
-                .withQueryParam("available", equalTo("true"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"content\":[{\"id\":20}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        PageResponse<VisitDto> page = medicalClinicClient.getAvailableVisitsByDateRange(
-                Specialization.CARDIOLOGY, LocalDate.of(2026, 8, 18), LocalDate.of(2026, 8, 25), true);
-        assertNotNull(page);
-        assertFalse(page.content().isEmpty());
-        assertEquals(20L, page.content().getFirst().getId());
-    }
-
-    @Test
-    void getVisitsBySpecializationAndDateRange_WireMockConfigured_ReturnVisitPage() {
-        stubFor(get(urlPathEqualTo("/visits"))
-                .withQueryParam("specialization", equalTo("CARDIOLOGY"))
-                .withQueryParam("startDate", equalTo("2026-08-18"))
-                .withQueryParam("endDate", equalTo("2026-08-25"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"content\":[{\"id\":25}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        PageResponse<VisitDto> page = medicalClinicClient.getVisitsBySpecializationAndDateRange(
-                Specialization.CARDIOLOGY, LocalDate.of(2026, 8, 18), LocalDate.of(2026, 8, 25));
-        assertNotNull(page);
-        assertFalse(page.content().isEmpty());
-        assertEquals(25L, page.content().getFirst().getId());
     }
 
     @Test
@@ -144,4 +84,3 @@ public class MedicalClinicClientTest {
         assertEquals("John", doctors.getFirst().getFirstName());
     }
 }
-

@@ -27,14 +27,49 @@ public class ProxyServiceTest {
     private ProxyService proxyService;
 
     @Test
-    void getPatientVisits_Success_ReturnVisits() {
+    void getVisits_Success_ReturnVisits() {
         VisitDto dto = new VisitDto();
         dto.setId(10L);
-        when(client.getPatientVisits(1L)).thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
-        List<VisitResponse> result = proxyService.getPatientVisits(1L);
+        when(client.getVisits(1L, null, null, null, null, false))
+                .thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
+        List<VisitResponse> result = proxyService.getVisits(1L, null, null, null, null, false);
         assertEquals(1, result.size());
         assertEquals(10L, result.getFirst().getId());
-        verify(client).getPatientVisits(1L);
+        verify(client).getVisits(1L, null, null, null, null, false);
+    }
+
+    @Test
+    void getVisits_AvailableOnly_Success_ReturnVisits() {
+        VisitDto dto = new VisitDto();
+        dto.setId(15L);
+        when(client.getVisits(null, 2L, null, null, null, true))
+                .thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
+        List<VisitResponse> result = proxyService.getVisits(null, 2L, null, null, null, true);
+        assertEquals(1, result.size());
+        assertEquals(15L, result.getFirst().getId());
+        verify(client).getVisits(null, 2L, null, null, null, true);
+    }
+
+    @Test
+    void getVisits_WithSpecializationAndDateRange_Success_ReturnVisits() {
+        LocalDate start = LocalDate.of(2026, 8, 18);
+        LocalDate end = LocalDate.of(2026, 8, 25);
+        VisitDto dto = new VisitDto();
+        dto.setId(20L);
+        when(client.getVisits(null, null, Specialization.CARDIOLOGY, start, end, true))
+                .thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
+        List<VisitResponse> result = proxyService.getVisits(null, null, Specialization.CARDIOLOGY, start, end, true);
+        assertEquals(1, result.size());
+        assertEquals(20L, result.getFirst().getId());
+        verify(client).getVisits(null, null, Specialization.CARDIOLOGY, start, end, true);
+    }
+
+    @Test
+    void getVisits_FallbackReturnsEmptyList_ReturnEmptyList() {
+        when(client.getVisits(99L, null, null, null, null, false))
+                .thenReturn(new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0));
+        assertTrue(proxyService.getVisits(99L, null, null, null, null, false).isEmpty());
+        verify(client).getVisits(99L, null, null, null, null, false);
     }
 
     @Test
@@ -48,41 +83,6 @@ public class ProxyServiceTest {
     }
 
     @Test
-    void getAvailableVisitsByDoctor_Success_ReturnVisits() {
-        VisitDto dto = new VisitDto();
-        dto.setId(15L);
-        when(client.getAvailableVisitsByDoctor(1L, true)).thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
-        List<VisitResponse> result = proxyService.getAvailableVisitsByDoctor(1L);
-        assertEquals(1, result.size());
-        assertEquals(15L, result.getFirst().getId());
-        verify(client).getAvailableVisitsByDoctor(1L, true);
-    }
-
-    @Test
-    void getAvailableVisitsBySpecializationAndDate_Success_ReturnVisits() {
-        LocalDate date = LocalDate.of(2026, 8, 18);
-        VisitDto dto = new VisitDto();
-        dto.setId(20L);
-        when(client.getAvailableVisitsBySpecializationAndDate(Specialization.CARDIOLOGY, date, true))
-                .thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
-        List<VisitResponse> result = proxyService.getAvailableVisitsBySpecializationAndDate(Specialization.CARDIOLOGY, date);
-        assertEquals(1, result.size());
-        assertEquals(20L, result.getFirst().getId());
-        verify(client).getAvailableVisitsBySpecializationAndDate(Specialization.CARDIOLOGY, date, true);
-    }
-
-    @Test
-    void getDoctorVisits_Success_ReturnVisits() {
-        VisitDto dto = new VisitDto();
-        dto.setId(25L);
-        when(client.getDoctorVisits(1L)).thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
-        List<VisitResponse> result = proxyService.getDoctorVisits(1L);
-        assertEquals(1, result.size());
-        assertEquals(25L, result.getFirst().getId());
-        verify(client).getDoctorVisits(1L);
-    }
-
-    @Test
     void cancelVisit_Success_ReturnCancelledVisit() {
         VisitDto dto = new VisitDto();
         dto.setId(1L);
@@ -93,31 +93,17 @@ public class ProxyServiceTest {
     }
 
     @Test
-    void getAvailableVisitsByDateRange_Success_ReturnVisits() {
-        LocalDate start = LocalDate.of(2026, 8, 18);
-        LocalDate end = LocalDate.of(2026, 8, 25);
-        VisitDto dto = new VisitDto();
-        dto.setId(30L);
-        when(client.getAvailableVisitsByDateRange(Specialization.CARDIOLOGY, start, end, true))
-                .thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
-        List<VisitResponse> result = proxyService.getAvailableVisitsByDateRange(Specialization.CARDIOLOGY, start, end);
-        assertEquals(1, result.size());
-        assertEquals(30L, result.getFirst().getId());
-        verify(client).getAvailableVisitsByDateRange(Specialization.CARDIOLOGY, start, end, true);
+    void bookVisit_ClientThrowsServiceUnavailable_PropagatesException() {
+        when(client.bookVisit(1L, 2L)).thenThrow(new ServiceUnavailableException("Failed to book visit, service unavailable"));
+        assertThrows(ServiceUnavailableException.class, () -> proxyService.bookVisit(1L, 2L));
+        verify(client).bookVisit(1L, 2L);
     }
 
     @Test
-    void getVisitsBySpecializationAndDateRange_Success_ReturnVisits() {
-        LocalDate start = LocalDate.of(2026, 8, 18);
-        LocalDate end = LocalDate.of(2026, 8, 25);
-        VisitDto dto = new VisitDto();
-        dto.setId(35L);
-        when(client.getVisitsBySpecializationAndDateRange(Specialization.CARDIOLOGY, start, end))
-                .thenReturn(new PageResponse<>(List.of(dto), 0, 20, 1L, 1));
-        List<VisitResponse> result = proxyService.getVisitsBySpecializationAndDateRange(Specialization.CARDIOLOGY, start, end);
-        assertEquals(1, result.size());
-        assertEquals(35L, result.getFirst().getId());
-        verify(client).getVisitsBySpecializationAndDateRange(Specialization.CARDIOLOGY, start, end);
+    void cancelVisit_ClientThrowsServiceUnavailable_PropagatesException() {
+        when(client.cancelVisit(1L)).thenThrow(new ServiceUnavailableException("Failed to cancel visit, service unavailable"));
+        assertThrows(ServiceUnavailableException.class, () -> proxyService.cancelVisit(1L));
+        verify(client).cancelVisit(1L);
     }
 
     @Test
@@ -138,74 +124,9 @@ public class ProxyServiceTest {
     }
 
     @Test
-    void getPatientVisits_FallbackReturnsEmptyList_ReturnEmptyList() {
-        when(client.getPatientVisits(99L)).thenReturn(new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0));
-        assertTrue(proxyService.getPatientVisits(99L).isEmpty());
-        verify(client).getPatientVisits(99L);
-    }
-
-    @Test
-    void bookVisit_ClientThrowsServiceUnavailable_PropagatesException() {
-        when(client.bookVisit(1L, 2L)).thenThrow(new ServiceUnavailableException("Failed to book visit, service unavailable"));
-        assertThrows(ServiceUnavailableException.class, () -> proxyService.bookVisit(1L, 2L));
-        verify(client).bookVisit(1L, 2L);
-    }
-
-    @Test
-    void cancelVisit_ClientThrowsServiceUnavailable_PropagatesException() {
-        when(client.cancelVisit(1L)).thenThrow(new ServiceUnavailableException("Failed to cancel visit, service unavailable"));
-        assertThrows(ServiceUnavailableException.class, () -> proxyService.cancelVisit(1L));
-        verify(client).cancelVisit(1L);
-    }
-
-    @Test
-    void getAvailableVisitsByDoctor_FallbackReturnsEmptyList_ReturnEmptyList() {
-        when(client.getAvailableVisitsByDoctor(99L, true)).thenReturn(new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0));
-        assertTrue(proxyService.getAvailableVisitsByDoctor(99L).isEmpty());
-        verify(client).getAvailableVisitsByDoctor(99L, true);
-    }
-
-    @Test
-    void getDoctorVisits_FallbackReturnsEmptyList_ReturnEmptyList() {
-        when(client.getDoctorVisits(99L)).thenReturn(new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0));
-        assertTrue(proxyService.getDoctorVisits(99L).isEmpty());
-        verify(client).getDoctorVisits(99L);
-    }
-
-    @Test
-    void getAvailableVisitsBySpecializationAndDate_FallbackReturnsEmptyList_ReturnEmptyList() {
-        LocalDate date = LocalDate.of(2026, 8, 18);
-        when(client.getAvailableVisitsBySpecializationAndDate(Specialization.NEUROLOGIST, date, true))
-                .thenReturn(new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0));
-        assertTrue(proxyService.getAvailableVisitsBySpecializationAndDate(Specialization.NEUROLOGIST, date).isEmpty());
-        verify(client).getAvailableVisitsBySpecializationAndDate(Specialization.NEUROLOGIST, date, true);
-    }
-
-    @Test
-    void getAvailableVisitsByDateRange_WithoutSpecialization_ReturnEmptyList() {
-        LocalDate start = LocalDate.of(2026, 8, 18);
-        LocalDate end = LocalDate.of(2026, 8, 25);
-        when(client.getAvailableVisitsByDateRange(null, start, end, true))
-                .thenReturn(new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0));
-        assertTrue(proxyService.getAvailableVisitsByDateRange(null, start, end).isEmpty());
-        verify(client).getAvailableVisitsByDateRange(null, start, end, true);
-    }
-
-    @Test
-    void getVisitsBySpecializationAndDateRange_FallbackReturnsEmptyList_ReturnEmptyList() {
-        LocalDate start = LocalDate.of(2026, 8, 18);
-        LocalDate end = LocalDate.of(2026, 8, 25);
-        when(client.getVisitsBySpecializationAndDateRange(Specialization.SURGEON, start, end))
-                .thenReturn(new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0));
-        assertTrue(proxyService.getVisitsBySpecializationAndDateRange(Specialization.SURGEON, start, end).isEmpty());
-        verify(client).getVisitsBySpecializationAndDateRange(Specialization.SURGEON, start, end);
-    }
-
-    @Test
     void getDoctorsBySpecialization_FallbackReturnsEmptyList_ReturnEmptyList() {
         when(client.getDoctorsBySpecialization(Specialization.DERMATOLOGY)).thenReturn(Collections.emptyList());
         assertTrue(proxyService.getDoctorsBySpecialization(Specialization.DERMATOLOGY).isEmpty());
         verify(client).getDoctorsBySpecialization(Specialization.DERMATOLOGY);
     }
 }
-

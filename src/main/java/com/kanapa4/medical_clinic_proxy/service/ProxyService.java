@@ -18,9 +18,9 @@ import java.util.List;
 public class ProxyService {
     private final MedicalClinicClient client;
 
-    public List<VisitResponse> getPatientVisits(Long patientId) {
-        log.info("Fetching visits for patient {}", patientId);
-        return mapVisitsToResponse(client.getPatientVisits(patientId).content());
+    public List<VisitResponse> getVisits(Long patientId, Long doctorId, Specialization specialization, LocalDate startDate, LocalDate endDate, Boolean availableOnly) {
+        log.info("Fetching visits with filters: patientId={}, doctorId={}, specialization={}, startDate={}, endDate={}, availableOnly={}", patientId, doctorId, specialization, startDate, endDate, availableOnly);
+        return mapVisitsToResponse(client.getVisits(patientId, doctorId, specialization, startDate, endDate, availableOnly).content());
     }
 
     public VisitResponse bookVisit(Long visitId, Long patientId) {
@@ -28,35 +28,12 @@ public class ProxyService {
         return mapToVisitResponse(client.bookVisit(visitId, patientId));
     }
 
-    public List<VisitResponse> getAvailableVisitsByDoctor(Long doctorId) {
-        log.info("Fetching available visits for doctor {}", doctorId);
-        return mapVisitsToResponse(client.getAvailableVisitsByDoctor(doctorId, true).content());
-    }
-
-    public List<VisitResponse> getAvailableVisitsBySpecializationAndDate(Specialization specialization, LocalDate date) {
-        log.info("Fetching available visits for spec {} and date {}", specialization, date);
-        return mapVisitsToResponse(client.getAvailableVisitsBySpecializationAndDate(specialization, date, true).content());
-    }
-
-    public List<VisitResponse> getDoctorVisits(Long doctorId) {
-        log.info("Fetching all visits for doctor {}", doctorId);
-        return mapVisitsToResponse(client.getDoctorVisits(doctorId).content());
-    }
 
     public VisitResponse cancelVisit(Long visitId) {
         log.info("Cancelling visit {}", visitId);
         return mapToVisitResponse(client.cancelVisit(visitId));
     }
 
-    public List<VisitResponse> getAvailableVisitsByDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
-        log.info("Fetching available visits for spec {} from {} to {}", specialization, startDate, endDate);
-        return mapVisitsToResponse(client.getAvailableVisitsByDateRange(specialization, startDate, endDate, true).content());
-    }
-
-    public List<VisitResponse> getVisitsBySpecializationAndDateRange(Specialization specialization, LocalDate startDate, LocalDate endDate) {
-        log.info("Fetching visits for spec {} from {} to {}", specialization, startDate, endDate);
-        return mapVisitsToResponse(client.getVisitsBySpecializationAndDateRange(specialization, startDate, endDate).content());
-    }
 
     public List<DoctorResponse> getDoctorsBySpecialization(Specialization specialization) {
         log.info("Fetching doctors for specialization {}", specialization);

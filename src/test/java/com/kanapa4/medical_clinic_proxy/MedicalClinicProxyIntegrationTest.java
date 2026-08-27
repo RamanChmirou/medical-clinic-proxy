@@ -22,29 +22,29 @@ public class MedicalClinicProxyIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    void getPatientVisits_ApiAvailable_ReturnVisits() throws Exception {
+    void getVisits_ApiAvailable_ReturnVisits() throws Exception {
         stubFor(get(urlPathEqualTo("/visits"))
                 .withQueryParam("patientId", equalTo("1"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"content\":[{\"id\":1}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/1/visits"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/visits").param("patientId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
     }
 
     @Test
-    void getPatientVisits_ApiUnavailable_ReturnFallback() throws Exception {
+    void getVisits_ApiUnavailable_ReturnFallback() throws Exception {
         stubFor(get(urlPathEqualTo("/visits"))
                 .withQueryParam("patientId", equalTo("2"))
                 .willReturn(aResponse().withStatus(500)));
-        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/2/visits"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/visits").param("patientId", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
-    void getPatientVisits_RetryOnFailure_SucceedsEventually() throws Exception {
+    void getVisits_RetryOnFailure_SucceedsEventually() throws Exception {
         stubFor(get(urlPathEqualTo("/visits"))
                 .withQueryParam("patientId", equalTo("3"))
                 .inScenario("Retry Scenario")
@@ -64,18 +64,18 @@ public class MedicalClinicProxyIntegrationTest {
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"content\":[{\"id\":3}],\"totalPages\":1,\"totalElements\":1,\"size\":20,\"number\":0}")));
-        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/3/visits"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/visits").param("patientId", "3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(3));
         verify(3, getRequestedFor(urlPathEqualTo("/visits")).withQueryParam("patientId", equalTo("3")));
     }
 
     @Test
-    void getPatientVisits_AllRetriesFail_ReturnFallback() throws Exception {
+    void getVisits_AllRetriesFail_ReturnFallback() throws Exception {
         stubFor(get(urlPathEqualTo("/visits"))
                 .withQueryParam("patientId", equalTo("4"))
                 .willReturn(aResponse().withStatus(500)));
-        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/patients/4/visits"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/proxy/visits").param("patientId", "4"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
         verify(3, getRequestedFor(urlPathEqualTo("/visits")).withQueryParam("patientId", equalTo("4")));
@@ -128,4 +128,3 @@ public class MedicalClinicProxyIntegrationTest {
                 .andExpect(jsonPath("$").isEmpty());
     }
 }
-
