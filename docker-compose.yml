@@ -14,7 +14,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U postgres -d medical_clinic"]
       interval: 3s
       timeout: 3s
-      retries: 3
+      retries: 5
 
   medical-clinic-app:
     build: ../../medical-clinic/medical-clinic
@@ -28,12 +28,19 @@ services:
       SPRING_DATASOURCE_PASSWORD: "228007"
     ports:
       - "8080:8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 8080 || exit 1" ]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 15s
 
   medical-clinic-proxy:
     build: .
     container_name: medical-clinic-proxy
     depends_on:
-      - medical-clinic-app
+      medical-clinic-app:
+        condition: service_healthy
     environment:
       SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_MEDICAL-CLINIC-CLIENT_URL: http://medical-clinic-app:8080
       MEDICAL_CLINIC_URL: http://medical-clinic-app:8080
