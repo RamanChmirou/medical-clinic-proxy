@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.wiremock.spring.EnableWireMock;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,14 +75,17 @@ public class MedicalClinicClientTest {
 
     @Test
     void getDoctorsBySpecialization_WireMockConfigured_ReturnDoctorList() {
-        stubFor(get(urlEqualTo("/doctors/specialization/CARDIOLOGY"))
+        stubFor(get(urlPathEqualTo("/doctors"))
+                .withQueryParam("specialization", equalTo("CARDIOLOGY"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody("[{\"id\":1,\"firstName\":\"John\",\"lastName\":\"Doe\"}]")));
-        List<DoctorDto> doctors = medicalClinicClient.getDoctorsBySpecialization(Specialization.CARDIOLOGY);
-        assertNotNull(doctors);
-        assertFalse(doctors.isEmpty());
-        assertEquals(1L, doctors.getFirst().getId());
-        assertEquals("John", doctors.getFirst().getFirstName());
+                        .withBody("{\"content\":[{\"id\":1,\"firstName\":\"John\",\"lastName\":\"Doe\"}],\"page\":0,\"size\":10,\"totalElements\":1,\"totalPages\":1}")));
+
+        PageResponse<DoctorDto> page = medicalClinicClient.getDoctorsBySpecialization(Specialization.CARDIOLOGY);
+
+        assertNotNull(page);
+        assertFalse(page.content().isEmpty());
+        assertEquals(1L, page.content().getFirst().getId());
+        assertEquals("John", page.content().getFirst().getFirstName());
     }
 }

@@ -5,7 +5,6 @@ import com.kanapa4.medical_clinic_proxy.model.PageResponse;
 import com.kanapa4.medical_clinic_proxy.model.Specialization;
 import com.kanapa4.medical_clinic_proxy.model.VisitDto;
 import java.time.LocalDate;
-import java.util.List;
 
 public interface MedicalClinicClientPort {
 
@@ -15,5 +14,5 @@ public interface MedicalClinicClientPort {
 
     VisitDto cancelVisit(Long visitId);
 
-    List<DoctorDto> getDoctorsBySpecialization(Specialization specialization);
+    PageResponse<DoctorDto> getDoctorsBySpecialization(Specialization specialization);
 }

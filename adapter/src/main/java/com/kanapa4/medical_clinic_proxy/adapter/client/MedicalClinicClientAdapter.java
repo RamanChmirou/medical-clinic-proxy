@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -33,7 +32,7 @@ public class MedicalClinicClientAdapter implements MedicalClinicClientPort {
     }
 
     @Override
-    public List<DoctorDto> getDoctorsBySpecialization(Specialization specialization) {
+    public PageResponse<DoctorDto> getDoctorsBySpecialization(Specialization specialization) {
         return client.getDoctorsBySpecialization(specialization);
     }
 }

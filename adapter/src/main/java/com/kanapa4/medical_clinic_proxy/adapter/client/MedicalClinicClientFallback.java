@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -43,9 +42,9 @@ public class MedicalClinicClientFallback implements FallbackFactory<MedicalClini
             }
 
             @Override
-            public List<DoctorDto> getDoctorsBySpecialization(Specialization specialization) {
+            public PageResponse<DoctorDto> getDoctorsBySpecialization(Specialization specialization) {
                 log.error("Fallback for getDoctorsBySpecialization triggered due to error: {}", cause.getMessage(), cause);
-                return Collections.emptyList();
+                return new PageResponse<>(Collections.emptyList(), 0, 0, 0L, 0);
             }
         };
     }

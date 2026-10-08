@@ -39,7 +39,7 @@ public class ProxyService {
 
     public List<DoctorResponse> getDoctorsBySpecialization(Specialization specialization) {
         log.info("Fetching doctors for specialization {}", specialization);
-        List<DoctorDto> doctors = clientPort.getDoctorsBySpecialization(specialization);
-        return mapperPort.toDoctorResponses(doctors);
+        PageResponse<DoctorDto> page = clientPort.getDoctorsBySpecialization(specialization);
+        return mapperPort.toDoctorResponses(page.content());
     }
 }

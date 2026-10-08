@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @FeignClient(
     name = "medical-clinic-client",
@@ -35,6 +34,6 @@ public interface MedicalClinicClient {
     @PatchMapping("/visits/{visitId}/cancel")
     VisitDto cancelVisit(@PathVariable("visitId") Long visitId);
 
-    @GetMapping("/doctors/specialization/{specialization}")
-    List<DoctorDto> getDoctorsBySpecialization(@PathVariable("specialization") Specialization specialization);
+    @GetMapping("/doctors")
+    PageResponse<DoctorDto> getDoctorsBySpecialization(@RequestParam("specialization") Specialization specialization);
 }

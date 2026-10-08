@@ -160,7 +160,16 @@ class ProxyServiceTest {
                 .specialization(Specialization.CARDIOLOGY)
                 .build();
 
-        when(clientPort.getDoctorsBySpecialization(Specialization.CARDIOLOGY)).thenReturn(List.of(dto));
+        PageResponse<DoctorDto> pageResponse = new PageResponse<>(
+                List.of(dto),
+                1,
+                0,
+                1L,
+                1
+        );
+
+        when(clientPort.getDoctorsBySpecialization(Specialization.CARDIOLOGY))
+                .thenReturn(pageResponse);
         when(mapperPort.toDoctorResponses(List.of(dto))).thenReturn(List.of(response));
 
         List<DoctorResponse> result = proxyService.getDoctorsBySpecialization(Specialization.CARDIOLOGY);
@@ -176,7 +185,16 @@ class ProxyServiceTest {
 
     @Test
     void getDoctorsBySpecialization_FallbackReturnsEmptyList_ReturnEmptyList() {
-        when(clientPort.getDoctorsBySpecialization(Specialization.DERMATOLOGY)).thenReturn(Collections.emptyList());
+        PageResponse<DoctorDto> emptyPage = new PageResponse<>(
+                Collections.emptyList(),
+                0,
+                0,
+                0L,
+                0
+        );
+
+        when(clientPort.getDoctorsBySpecialization(Specialization.DERMATOLOGY))
+                .thenReturn(emptyPage);
         when(mapperPort.toDoctorResponses(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         assertTrue(proxyService.getDoctorsBySpecialization(Specialization.DERMATOLOGY).isEmpty());
